@@ -506,4 +506,4 @@ class FileViewModel: ObservableObject {
             }
         }
     }
-} 
+}
