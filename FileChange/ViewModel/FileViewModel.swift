@@ -352,36 +352,38 @@ class FileViewModel: ObservableObject {
     func getFilesAValorar(completion: @escaping (Bool) -> Void){
         let db = Firestore.firestore()
         let id = Auth.auth().currentUser?.uid ?? ""
-        db.collection("usuarios").document(id).getDocument { (doc, error) in
-            
-            if let doc = doc, doc.exists {
+        
+        if id != "" {
+            db.collection("usuarios").document(id).getDocument { (doc, error) in
                 
-                let datos = doc.data()
-                self.user = self.docEnUser(valor: datos!, id: doc.documentID)
-                
-                db.collection("archivos").getDocuments() { (querySnapshot, err) in
-                    if let err = err {
-                        print("Error al obtener archivos a valorar: \(err)")
-                    } else {
-                        self.filesValorar.removeAll()
-                        for document in querySnapshot!.documents {
-                            let nuevoFile = self.docEnFile(document: document)
-                            
-                            if self.user.valoracionesPendientes.contains(nuevoFile.id){
-                                self.filesValorar.append(nuevoFile)
+                if let doc = doc, doc.exists {
+                    
+                    let datos = doc.data()
+                    self.user = self.docEnUser(valor: datos!, id: doc.documentID)
+                    
+                    db.collection("archivos").getDocuments() { (querySnapshot, err) in
+                        if let err = err {
+                            print("Error al obtener archivos a valorar: \(err)")
+                        } else {
+                            self.filesValorar.removeAll()
+                            for document in querySnapshot!.documents {
+                                let nuevoFile = self.docEnFile(document: document)
+                                
+                                if self.user.valoracionesPendientes.contains(nuevoFile.id){
+                                    self.filesValorar.append(nuevoFile)
+                                }
                             }
+                            
+                            completion(true)
                         }
-                        
-                        completion(true)
                     }
+                } else {
+                    print("Error al obtener información del usuario")
                 }
-            } else {
-                print("Error al obtener información del usuario")
             }
+        } else {
+            completion(true)
         }
-        
-
-        
     }
     
     func deleteFileValorar(idFile: String){

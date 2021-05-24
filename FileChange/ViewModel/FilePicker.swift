@@ -37,6 +37,7 @@ struct FilePicker: UIViewControllerRepresentable {
         }
         
         func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentsAt urls: [URL]) {
+            let fileURL = urls.first!
             
             if self.parent.file.dirArchivo != "" {
                 let storageFile = Storage.storage().reference(forURL: self.parent.file.dirArchivo)
@@ -48,9 +49,9 @@ struct FilePicker: UIViewControllerRepresentable {
             let directorioArchivo = storage.child("archivos/\(nombreArchivo)")
             self.parent.file.dirArchivo = String(describing: directorioArchivo)
             
-            directorioArchivo.putFile(from: urls.first!, metadata: nil) { (_, err) in
+            directorioArchivo.putFile(from: fileURL, metadata: nil) { (_, err) in
                 if err != nil {
-                    print((err?.localizedDescription)!)
+                    print("error al subir archivo: " + (err?.localizedDescription)!)
                     return
                 }
                 

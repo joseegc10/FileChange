@@ -21,6 +21,7 @@ struct AddEditFileView: View {
     @State private var elegirCapacidad = false
     
     @State private var alerta = false
+    @State private var mensajeFin = false
     
     @State private var centerCoordinate = CLLocationCoordinate2D()
     
@@ -33,6 +34,8 @@ struct AddEditFileView: View {
     @State private var elegirFile = false
     
     @State private var elegido = false
+    
+    @State private var borrado = false
     
     var body: some View {
         NavigationView{
@@ -153,8 +156,41 @@ struct AddEditFileView: View {
                                         .font(.body)
                                         .foregroundColor(.black)
                                 }.frame(width: UIScreen.main.bounds.width - 60)
-                            }.sheet(isPresented: $elegirFile) {
-                                FilePicker(file: $file)
+                            }.fileImporter(isPresented: $elegirFile, allowedContentTypes: [.pdf]) { res in
+                                do {
+                                    let fileURL = try res.get()
+                                    
+                                    if self.file.dirArchivo != "" {
+                                        let storageFile = Storage.storage().reference(forURL: self.file.dirArchivo)
+                                        storageFile.delete(completion: nil)
+                                    }
+                                                
+                                    let storage = Storage.storage().reference()
+                                    let nombreArchivo = UUID()
+                                    let directorioArchivo = storage.child("archivos/\(nombreArchivo)")
+                                    self.file.dirArchivo = String(describing: directorioArchivo)
+                                    let metadata = StorageMetadata()
+                                    metadata.contentType = "application/pdf"
+                                
+                                    if fileURL.startAccessingSecurityScopedResource() {
+                                        let data = try Data(contentsOf: fileURL)
+                                        
+                                        directorioArchivo.putData(data, metadata: metadata) { (_, err) in
+                                            if err != nil {
+                                                print("error al subir archivo: " + (err?.localizedDescription)!)
+                                                return
+                                            }
+                                            
+                                            print(file.dirArchivo)
+                                            print("Archivo subido correctamente")
+                                        }
+                                    } else {
+                                        print("Sin permiso")
+                                    }
+                                    
+                                } catch {
+                                    print("error al importar archivo: ", error.localizedDescription)
+                                }
                             }
                         }.padding()
                         .background(Color(.white))
@@ -197,6 +233,7 @@ struct AddEditFileView: View {
                                 files.deleteFile(file: file){ (fin) in
                                     if fin {
                                         alerta = false
+                                        borrado = true
                                     }
                                 }
                             }, label: {
@@ -227,6 +264,7 @@ struct AddEditFileView: View {
                                         alerta = false
                                         file = FileModel()
                                         imageData = .init(capacity: 0)
+                                        mensajeFin = true
                                     }
                                 }
                             } else {
@@ -236,6 +274,7 @@ struct AddEditFileView: View {
                                         if fin {
                                             alerta = false
                                             imageData = .init(capacity: 0)
+                                            mensajeFin = true
                                         }
                                     }
                                 } else {
@@ -243,6 +282,7 @@ struct AddEditFileView: View {
                                         if fin {
                                             alerta = false
                                             imageData = .init(capacity: 0)
+                                            mensajeFin = true
                                         }
                                     }
                                 }
@@ -271,6 +311,13 @@ struct AddEditFileView: View {
                     }
                     
                     Spacer()
+                }.alert(isPresented: $mensajeFin) {
+                    if editar {
+                        return Alert(title: Text("Archivo editado correctamente"), message: Text(""), dismissButton: .default(Text("Ok")))
+                    } else {
+                        return Alert(title: Text("Archivo creado correctamente"), message: Text(""), dismissButton: .default(Text("OK")))
+                    }
+                    
                 }
             }.navigationBarTitle("Añadir", displayMode: .inline)
             .navigationBarHidden(editar)
@@ -280,6 +327,9 @@ struct AddEditFileView: View {
                         Text("Añadir").font(.headline).foregroundColor(Color.white)
                     }
                 }
+            }
+            .alert(isPresented: $borrado) {
+                Alert(title: Text("Archivo eliminado correctamente"), message: Text(""), dismissButton: .default(Text("Ok")))
             }
         }
     }

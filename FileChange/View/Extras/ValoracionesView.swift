@@ -70,11 +70,11 @@ struct ValoracionesView: View {
                     if listaFiles.count > 1 {
                         Text("Siguiente valoración")
                             .font(.headline)
-                            .foregroundColor(.black)
+                            .foregroundColor(.white)
                     } else {
                         Text("Finalizar valoraciones")
                             .font(.headline)
-                            .foregroundColor(.black)
+                            .foregroundColor(.white)
                     }
                 }
                 

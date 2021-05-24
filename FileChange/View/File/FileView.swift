@@ -34,7 +34,7 @@ struct FileView: View {
                             .foregroundColor(.blue)
                         
                         HStack {
-                            ForEach(0..<5, id: \.self, content: { i in
+                            ForEach(1..<6, id: \.self, content: { i in
                                 if Int(file.valoracionMedia) < i {
                                     Image(systemName: "star")
                                 } else {
